@@ -30,7 +30,9 @@ steps:
   - '-c'
   - |
     # Use SSH instead of HTTPS
+    echo "git remote set-url"
     git remote set-url origin "git@github.com:taxintt/cloudbuild-infra-cicd-sample.git"
+    echo "git fetch --unshallow"
     git fetch --unshallow --update-head-ok origin '+refs/heads/*:refs/heads/*'
   volumes:
   - name: 'ssh'
