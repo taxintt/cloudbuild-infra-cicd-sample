@@ -1,0 +1,143 @@
+steps:
+- id: 'Get GitHub key'
+  name: gcr.io/cloud-builders/gcloud
+  entrypoint: 'bash'
+  args: [ '-c', 'gcloud secrets versions access latest --secret=cloud-build-github > /root/.ssh/id_github' ] 
+  volumes:
+  - name: 'ssh' 
+    path: /root/.ssh
+  
+- id: 'Set up git with key and domain' 
+  name: 'gcr.io/cloud-builders/git' 
+  entrypoint: 'bash'
+  args:
+  - '-c' 
+  - |
+    chmod 600 /root/.ssh/id_github 
+    cat <<EOF >/root/.ssh/config 
+    Hostname github.com 
+    IdentityFile /root/.ssh/id_github 
+    EOF
+    ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts 
+  volumes:
+  - name: 'ssh'
+    path: /root/.ssh
+
+- id: 'Fetch repo'
+  name: 'gcr.io/cloud-builders/git'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    # Use SSH instead of HTTPS
+    git remote set-url origin "git@github.com:taxintt/cloudbuild-infra-cicd-sample.git"
+    git fetch --unshallow --update-head-ok origin '+refs/heads/*:refs/heads/*'
+  volumes:
+  - name: 'ssh'
+    path: /root/.ssh
+
+- id: 'check diff'
+  name: 'gcr.io/cloud-builders/git' 
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    if [ "$BRANCH_NAME" == "main" ] ; then
+      git diff --name-only "HEAD^" "HEAD" . > /workspace/changed_files.txt
+    else
+      git diff --name-only "$(git merge-base origin/main HEAD)" . > /workspace/changed_files.txt 
+    fi
+    echo "Changed files"
+    cat /workspace/changed_files.txt
+
+    cut -d/ -f1 /workspace/changed_files.txt | grep -E 'cluster|microservices|modules|policy' | sort | uniq > /workspace/changed_categories.txt
+    echo "Changed categories"
+    cat /workspace/changed_categories.txt
+
+    declare category_count=$(grep -v '^\s*$' /workspace/changed_categories.txt | wc -l)
+    echo "${category_count}"
+    if [ "${category_scount}"  == 0 ]; then
+      echo "No category change found"
+      exit 0
+    elif (( ${category_count} > 1 )); then
+      echo "Changed category must be less than 2"
+      exit 1
+    fi
+
+    < /workspace/changed_files.txt xargs -L1 dirname | grep -e '.' | sort | uniq > /workspace/changed_directories.txt 
+    echo "Changed directories"
+    cat /workspace/changed_directories.txt
+
+    grep ".tf$" /workspace/changed_files.txt > /workspace/changed_tf_files.txt
+    echo "Changed tf files"
+    cat /workspace/changed_tf_files.txt
+
+- id: 'terraform fmt'
+  name: 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/cloudbuild-cicd-test/builder'
+  entrypoint: 'bash' 
+  args:
+  - '-c' 
+  - |
+    echo "/workspace/changed_categories.txt"
+    cat /workspace/changed_categories.txt
+    change=$(cat /workspace/changed categories.txt)
+    if [[ "${change}" == "cluster" || "${change}" == "microservices" || "${change}" == "modules" ]]; then
+      if ! terraform fmt -diff=true -check=true -recursive "$(cat /workspace/changed_categories.txt)"; then 
+        echo "Please run terraform fmt"
+        exit 1 
+      fi
+    fi
+
+- id: 'terraform plan'
+  name: 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/cloudbuild-cicd-test/builder' 
+  entrypoint: 'bash' 
+  args:
+  - '-c' 
+  - |
+    set -e
+    change=$(cat /workspace/changed_categories.txt)
+    if [[ "${change}" == "cluster" || "${change}" == "microservices"]] && [[ "$BRANCH_NAME" != "main" ]]; then
+      for dir in $(grep -v '\.' /workspace/changed_directories.txt);
+        cd "${dir}"
+        terraform init -input=false
+        terraform validate
+        terraform plan -input=false --out plan.out 2>&1 terraform show -json plan.out > plan.out.json
+        echo "${dir}/plan.out.json" >> /workspace/tf_plans.txt 
+        cd /workspace
+      done
+    fi
+
+- id: 'Conftest'
+  name: 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/cloudbuild-cicd-test/builder' 
+  entrypoint: 'bash' 
+  args:
+    - '-c' 
+    - |
+      change=$(cat /workspace/changed_categories.txt)
+      if [[ "${change}" == "cluster" || "${change}" == "microservices" || "${change}" == "modules" ]] && [[ "$BRANCH_NAME" != "main" ]]; then
+        conftest test --namespace tf $(cat /workspace/changed_tf_files.txt)
+        if [[ -f /workspace/tf_plans.txt ]]; then
+          conftest test --namespace plan $(cat /workspace/tf_plans.txt)
+        fi
+      elif [[ "${change}" == "policy" ]]; then
+        conftest verify
+      fi
+
+- id: 'terraform apply'
+  name: 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/cloudbuild-cicd-test/builder' 
+  entrypoint: 'bash' 
+  args:
+  - '-c' 
+  - |
+    set -e
+    change=$(cat /workspace/changed_categories.txt)
+    if [[ "${change}" == "cluster" || "${change}" == "microservices"]] && [[ "$BRANCH_NAME" == "main" ]] ; then
+      for dir in $(cat /workspace/changed_directories.txt); do
+        cd "${dir}"
+        terraform init -input=false
+        terraform validate
+        terraform apply -auto-approve -input=false
+        cd /workspace
+      done
+    fi
+timeout: 3600s
