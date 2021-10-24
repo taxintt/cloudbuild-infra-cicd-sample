@@ -117,7 +117,7 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
   node_config {
     preemptible     = true
     machine_type    = "e2-medium"
-    service_account = "least-privilege-sa-for-gke@${var.project_id}.iam.gserviceaccount.com"
+    service_account = module.iam.service_account_name
 
     metadata = {
       disable-legacy-endpoints = "true"
