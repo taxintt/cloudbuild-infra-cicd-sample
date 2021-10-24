@@ -99,6 +99,10 @@ resource "google_container_cluster" "primary" {
       start_time = "03:00"
     }
   }
+
+  depends_on = [
+    module.iam.service_account_name,
+  ]
 }
 
 resource "google_container_node_pool" "primary_preemptible_nodes" {
@@ -125,4 +129,8 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
 
     tags = ["istio"]
   }
+
+  depends_on = [
+    module.iam.service_account_name,
+  ]
 }
