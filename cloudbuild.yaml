@@ -127,6 +127,7 @@ steps:
       do
         cd "${dir}"
         terraform init -var 'project_id=$PROJECT_ID'
+        tflint --init
         tflint --config=.tflint.hcl --loglevel=info --module
         cd /workspace
       done
