@@ -94,6 +94,12 @@ resource "google_container_cluster" "primary" {
     services_ipv4_cidr_block = "/22"
   }
 
+  maintenance_policy {
+    daily_maintenance_window {
+      start_time = "03:00"
+    }
+  }
+
   depends_on = [
     module.iam.service_account_name,
   ]
