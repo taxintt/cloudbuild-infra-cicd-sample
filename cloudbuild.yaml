@@ -91,6 +91,8 @@ steps:
         echo "Please run terraform fmt"
         exit 1 
       fi
+    else
+      exit 0
     fi
 
 - id: 'terraform plan'
@@ -100,10 +102,7 @@ steps:
   - '-c' 
   - |
     change=$(cat /workspace/changed_categories.txt)
-    if [[ "$BRANCH_NAME" == "main" ]]; then
-      exit 0;
-    fi
-    if [[ ${change} == "cluster" || ${change} == "microservices"]]; then
+    if [[ ${change} == "cluster" || ${change} == "microservices" || ${change} == "modules" ]]; then
       for dir in $(grep -v '\.' /workspace/changed_directories.txt);
         cd "${dir}"
         terraform init -input=false
@@ -112,6 +111,9 @@ steps:
         echo "${dir}/plan.out.json" >> /workspace/tf_plans.txt 
         cd /workspace
       done
+    else
+      echo "Skipped terraform plan"
+      exit 0
     fi
 
 - id: 'Conftest'
@@ -131,6 +133,9 @@ steps:
         fi
       elif [[ ${change} == "policy" ]]; then
         conftest verify
+      else
+        echo "Skipped Conftest"
+        exit 0
       fi
 
 - id: 'terraform apply'
@@ -143,7 +148,7 @@ steps:
     if [[ "$BRANCH_NAME" != "main" ]]; then
       exit 0;
     fi
-    if [[ ${change} == "cluster" || ${change} == "microservices"]]; then
+    if [[ ${change} == "cluster" || ${change} == "microservices" || ${change} == "modules" ]]; then
       for dir in $(cat /workspace/changed_directories.txt); do
         cd "${dir}"
         terraform init -input=false
@@ -151,5 +156,8 @@ steps:
         terraform apply -auto-approve -input=false
         cd /workspace
       done
+    else
+      echo "Skipped terraform apply"
+      exit 0
     fi
 timeout: 3600s
