@@ -27,5 +27,5 @@ test_provider_without_version_is_allowed {
   input := {
     "provider": { { "region": "somewhere" } }
   }
-  no violations with input as input
+  no_violations with input as input
 }
