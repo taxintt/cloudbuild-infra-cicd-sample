@@ -108,7 +108,8 @@ steps:
         cd "${dir}"
         terraform init -input=false
         terraform validate
-        terraform plan -input=false --out plan.out 2>&1 terraform show -json plan.out > plan.out.json
+        terraform plan -input=false --out plan.out 2>&1 
+        terraform show -json plan.out > plan.out.json
         echo "${dir}/plan.out.json" >> /workspace/tf_plans.txt 
         cd /workspace
       done
