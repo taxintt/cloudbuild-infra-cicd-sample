@@ -103,9 +103,9 @@ steps:
       for dir in $(grep -v '\.' /workspace/changed_directories.txt)
       do
         cd "${dir}"
-        terraform init -input=false
+        terraform init -var 'project_id=$PROJECT_ID'
         terraform validate
-        terraform plan -input=false --out plan.out 2>&1 
+        terraform plan  -var 'project_id=$PROJECT_ID' --out plan.out 2>&1 
         terraform show -json plan.out > plan.out.json
         echo "${dir}/plan.out.json" >> /workspace/tf_plans.txt 
         cd /workspace
@@ -151,9 +151,9 @@ steps:
       for dir in $(cat /workspace/changed_directories.txt)
       do
         cd "${dir}"
-        terraform init -input=false
+        terraform init -var 'project_id=$PROJECT_ID'
         terraform validate
-        terraform apply -auto-approve -input=false
+        terraform apply -var 'project_id=$PROJECT_ID' -auto-approve 
         cd /workspace
       done
     else
