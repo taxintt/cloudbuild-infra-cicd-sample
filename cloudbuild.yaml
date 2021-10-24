@@ -85,7 +85,7 @@ steps:
   - |
     echo "/workspace/changed_categories.txt"
     cat /workspace/changed_categories.txt
-    change=$(cat /workspace/changed categories.txt)
+    change=$(cat /workspace/changed_categories.txt)
     if [[ "${change}" == "cluster" || "${change}" == "microservices" || "${change}" == "modules" ]]; then
       if ! terraform fmt -diff=true -check=true -recursive "$(cat /workspace/changed_categories.txt)"; then 
         echo "Please run terraform fmt"
@@ -99,7 +99,6 @@ steps:
   args:
   - '-c' 
   - |
-    set -e
     change=$(cat /workspace/changed_categories.txt)
     if [[ "${change}" == "cluster" || "${change}" == "microservices"]] && [[ "$BRANCH_NAME" != "main" ]]; then
       for dir in $(grep -v '\.' /workspace/changed_directories.txt);
@@ -134,7 +133,6 @@ steps:
   args:
   - '-c' 
   - |
-    set -e
     change=$(cat /workspace/changed_categories.txt)
     if [[ "${change}" == "cluster" || "${change}" == "microservices"]] && [[ "$BRANCH_NAME" == "main" ]] ; then
       for dir in $(cat /workspace/changed_directories.txt); do
