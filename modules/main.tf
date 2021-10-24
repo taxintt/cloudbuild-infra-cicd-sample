@@ -99,10 +99,6 @@ resource "google_container_cluster" "primary" {
       start_time = "03:00"
     }
   }
-
-  depends_on = [
-    module.iam.service_account_name,
-  ]
 }
 
 resource "google_container_node_pool" "primary_preemptible_nodes" {
@@ -117,7 +113,7 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
   node_config {
     preemptible     = true
     machine_type    = "e2-medium"
-    service_account = module.iam.service_account_name
+    service_account = module.iam.service_account_email
 
     metadata = {
       disable-legacy-endpoints = "true"
@@ -129,8 +125,4 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
 
     tags = ["istio"]
   }
-
-  depends_on = [
-    module.iam.service_account_name,
-  ]
 }
