@@ -64,9 +64,6 @@ steps:
     if [ "${category_scount}"  == 0 ]; then
       echo "No category change found"
       exit 0
-    elif (( ${category_count} > 1 )); then
-      echo "Changed category must be less than 2"
-      exit 1
     fi
 
     < /workspace/changed_files.txt xargs -L1 dirname | grep -e '.' | sort | uniq > /workspace/changed_directories.txt 
