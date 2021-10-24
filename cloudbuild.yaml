@@ -104,7 +104,7 @@ steps:
     change=$(cat /workspace/changed_categories.txt)
     if [[ ${change} == "cluster" || ${change} == "microservices" || ${change} == "modules" ]]; then
       for dir in $(grep -v '\.' /workspace/changed_directories.txt);
-        cd "${dir}"
+        cd ${dir}
         terraform init -input=false
         terraform validate
         terraform plan -input=false --out plan.out 2>&1 terraform show -json plan.out > plan.out.json
@@ -150,7 +150,7 @@ steps:
     fi
     if [[ ${change} == "cluster" || ${change} == "microservices" || ${change} == "modules" ]]; then
       for dir in $(cat /workspace/changed_directories.txt); do
-        cd "${dir}"
+        cd ${dir}
         terraform init -input=false
         terraform validate
         terraform apply -auto-approve -input=false
