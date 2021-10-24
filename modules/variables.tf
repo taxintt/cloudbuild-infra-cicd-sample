@@ -7,7 +7,7 @@ variable "zone" {
 }
 
 variable "node_version" {
-  default = "1.17.14-gke.1600"
+  default = "1.19.13-gke.1900"
 }
 
 variable "project_id" {}
