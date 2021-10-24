@@ -4,12 +4,12 @@ empty(value) {
   count(value) == 0
 }
 
-non empty(value) {
+non_empty(value) {
   count(value) > 0
 }
 
 violations {
-  non empty(deny)
+  non_empty(deny)
 }
 
 no_violations {
