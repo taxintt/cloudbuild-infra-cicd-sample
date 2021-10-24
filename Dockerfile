@@ -1,4 +1,4 @@
-FROM golang:1.16.9-stretch
+FROM golang:1.16.9-bullseye
 RUN apt-get update && apt-get install -y --no-install-recommends unzip
 ENV TERRAFORM_VERSION=0.15.5 \
 	CLOUD_SDK_VERSION=360.0.0 \
@@ -27,6 +27,6 @@ RUN mkdir -p /tmp/conftest \
 	&& tar zxf conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz \ 
 	&& mv conftest /usr/local/bin/ \
 	&& cd / \
-	&& rm -rf /tmp/conftest
+	&& rm -rf /tmp/conftest/conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz
 
-ENV PATH /google-cloud-sdk/bin:$PATH RUN gcloud components install kubectl
+# ENV PATH /google-cloud-sdk/bin:$PATH RUN gcloud components install kubectl
