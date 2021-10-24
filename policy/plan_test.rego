@@ -1,7 +1,7 @@
 package plan
 
 warning[msg] {
-	changes := input.resource changes[_]
+	changes := input.resource_changes[_]
 
 	changes.type = "google project iam member"
 	changes[_].after.role == "roles/admin"

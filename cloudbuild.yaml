@@ -154,6 +154,7 @@ steps:
           conftest test --namespace plan $(cat /workspace/tf_plans.txt)
         fi
       elif [[ ${change} == "policy" ]]; then
+        echo "conftest verify ..."
         conftest verify
       else
         echo "Skipped Conftest"
