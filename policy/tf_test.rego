@@ -1,23 +1,29 @@
 package tf
+
 empty(value) {
   count(value) == 0
 }
+
 non empty(value) {
   count(value) > 0
 }
+
 violations {
   non empty(deny)
 }
-no violations {
+
+no_violations {
   empty(deny)
 }
-test provider with version is denied {
+
+test_provider_with_version_is_denied {
   input := {
-	"provider": { { "version": ">= 3.33.0", "region": "somewhere" } } 
+	  "provider": { { "version": ">= 3.33.0", "region": "somewhere" } } 
   }
   violations with input as input
 }
-test provider without version is allowed {
+
+test_provider_without_version_is_allowed {
   input := {
     "provider": { { "region": "somewhere" } }
   }
