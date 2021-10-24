@@ -147,10 +147,13 @@ steps:
         exit 0;
       fi
       if [[ ${change} == "cluster" || ${change} == "microservices" || ${change} == "modules" ]]; then
-        conftest test --namespace tf $(cat /workspace/changed_tf_files.txt)
-        if [[ -f /workspace/tf_plans.txt ]]; then
-          conftest test --namespace plan $(cat /workspace/tf_plans.txt)
-        fi
+        for plan_file_dir in $(grep -v '\.' /workspace/tf_plans.txt)
+        do
+          conftest test --namespace tf $(cat ${plan_file_dir})
+          if [[ -f /workspace/tf_plans.txt ]]; then
+            conftest test --namespace plan $(cat ${plan_file_dir})
+          fi
+        done
       elif [[ ${change} == "policy" ]]; then
         conftest verify
       else
