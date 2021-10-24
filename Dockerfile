@@ -1,9 +1,9 @@
 FROM golang:1.16.9-bullseye
-RUN apt-get update && apt-get install -y --no-install-recommends unzip
+RUN apt-get update && apt-get install -y --no-install-recommends unzip sudo
 ENV TERRAFORM_VERSION=0.15.5 \
 	CLOUD_SDK_VERSION=360.0.0 \
 	CONFTEST_VERSION=0.28.1 \
-	TFLINT_VERSION=v0.24.1
+	TFLINT_VERSION=v0.33.0
 
 # install terraform
 RUN wget -q -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
