@@ -2,7 +2,10 @@ steps:
 - id: 'Get GitHub key'
   name: gcr.io/cloud-builders/gcloud
   entrypoint: 'bash'
-  args: [ '-c', 'gcloud secrets versions access latest --secret=cloud-build-github > /root/.ssh/id_github' ] 
+  args:
+  - '-c' 
+  - |
+    gcloud secrets versions access latest --secret=cloud-build-github > /root/.ssh/id_rsa
   volumes:
   - name: 'ssh' 
     path: /root/.ssh
@@ -13,10 +16,10 @@ steps:
   args:
   - '-c' 
   - |
-    chmod 600 /root/.ssh/id_github 
+    chmod 600 /root/.ssh/id_rsa 
     cat <<EOF >/root/.ssh/config 
     Hostname github.com 
-    IdentityFile /root/.ssh/id_github 
+    IdentityFile /root/.ssh/id_rsa 
     EOF
     ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts 
   volumes:
@@ -29,8 +32,10 @@ steps:
   args:
   - '-c'
   - |
-    # Use SSH instead of HTTPS
+    git config --global user.email $(git log --format='%an <%ae>' -n 1 HEAD | sed 's/.*\<\([^>]*\)\>.*/\1/g')
+    echo "git remote set-url"
     git remote set-url origin "git@github.com:taxintt/cloudbuild-infra-cicd-sample.git"
+    echo "git clone and fetch --unshallow"
     git fetch --unshallow --update-head-ok origin '+refs/heads/*:refs/heads/*'
   volumes:
   - name: 'ssh'
