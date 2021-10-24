@@ -1,7 +1,7 @@
 terraform {
   backend "gcs" {
-    bucket  = "tfstate-gcs-bucket-for-cloudbuild-cicd-test"
-    prefix  = "terraform/tfstate"
+    bucket = "tfstate-gcs-bucket-for-cloudbuild-cicd-test"
+    prefix = "terraform/tfstate"
   }
 }
 

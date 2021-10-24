@@ -1,4 +1,5 @@
 package tf
+
 deny[msg] {
 	p := input.provider[_]
 	p.version
